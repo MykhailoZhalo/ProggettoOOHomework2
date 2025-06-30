@@ -8,6 +8,8 @@ import org.example.model.ToDo;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
 public class BachecaWindow {
     private JPanel mainPanel;
     private JPanel bachechePanel;
-    private JButton homeButton;
+    private JButton logoutButton;
     private JButton createBachecaButton;
     private JTextField searchField;
     private JTextField dateField;
@@ -31,7 +33,7 @@ public class BachecaWindow {
     }
 
     private void setupActions() {
-        homeButton.addActionListener(e -> Controller.showHome());
+        logoutButton.addActionListener(e -> Controller.showLogin());
 
         createBachecaButton.addActionListener(e -> {
             JFrame parentFrame = (JFrame) SwingUtilities.getWindowAncestor(mainPanel);
@@ -62,6 +64,15 @@ public class BachecaWindow {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Collection<Bacheca> bacheche = Controller.getBacheche().values();
         Date today = new Date();
+
+        if (bacheche.isEmpty()) {
+            JLabel noBacheche = new JLabel("Nessuna bacheca disponibile.");
+            noBacheche.setFont(new Font("Arial", Font.BOLD, 16));
+            noBacheche.setHorizontalAlignment(SwingConstants.CENTER);
+            JPanel wrap = new JPanel(new BorderLayout());
+            wrap.add(noBacheche, BorderLayout.CENTER);
+            bachechePanel.add(wrap);
+        }
 
         for (Bacheca b : bacheche) {
             JPanel bachecaBox = new JPanel();
@@ -112,6 +123,30 @@ public class BachecaWindow {
                     checkBox.addActionListener(e -> todo.setCompletato(checkBox.isSelected()));
                     row.add(checkBox);
 
+                    // Immagine con evento click
+                    if (todo.getImmaginePath() != null && !todo.getImmaginePath().isEmpty()) {
+                        try {
+                            ImageIcon icon = new ImageIcon(todo.getImmaginePath());
+                            Image image = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+                            JLabel imageLabel = new JLabel(new ImageIcon(image));
+
+                            imageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                            imageLabel.setToolTipText("Clicca per ingrandire");
+
+                            imageLabel.addMouseListener(new MouseAdapter() {
+                                public void mouseClicked(MouseEvent e) {
+                                    showImagePopup(todo.getImmaginePath());
+                                }
+                            });
+
+                            row.add(imageLabel);
+                        } catch (Exception ex) {
+                            JLabel errorLabel = new JLabel("Immagine non valida");
+                            errorLabel.setForeground(Color.RED);
+                            row.add(errorLabel);
+                        }
+                    }
+
                     JButton editToDoButton = new JButton("Modifica");
                     editToDoButton.addActionListener(e -> Controller.showEditToDoWindow(b.getTitolo(), todo));
                     row.add(editToDoButton);
@@ -139,7 +174,6 @@ public class BachecaWindow {
                     });
                     row.add(downBtn);
 
-                    // Pulsante per spostare il ToDo in un'altra bacheca
                     JButton moveBtn = new JButton("Sposta");
                     moveBtn.addActionListener(e -> {
                         TitoloBacheca nuovaBacheca = (TitoloBacheca) JOptionPane.showInputDialog(
@@ -173,6 +207,16 @@ public class BachecaWindow {
         bachechePanel.repaint();
     }
 
+    private void showImagePopup(String imagePath) {
+        JFrame frame = new JFrame("Anteprima Immagine");
+        ImageIcon icon = new ImageIcon(imagePath);
+        JLabel label = new JLabel(new ImageIcon(icon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH)));
+        frame.add(label);
+        frame.setSize(420, 440);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
     public JPanel getPanel() {
         return mainPanel;
     }
@@ -181,14 +225,14 @@ public class BachecaWindow {
         mainPanel = new JPanel(new BorderLayout(10, 10));
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         createBachecaButton = new JButton("Crea Bacheca");
-        homeButton = new JButton("Home");
+        logoutButton = new JButton("Logout");
         searchField = new JTextField(15);
         dateField = new JTextField(10);
         searchButton = new JButton("Cerca");
         todayButton = new JButton("Scadenze Oggi");
 
         topPanel.add(createBachecaButton);
-        topPanel.add(homeButton);
+        topPanel.add(logoutButton);
         topPanel.add(new JLabel("Titolo:"));
         topPanel.add(searchField);
         topPanel.add(new JLabel("Data (dd/MM/yyyy):"));

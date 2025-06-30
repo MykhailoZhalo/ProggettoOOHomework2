@@ -7,12 +7,10 @@ import org.example.model.ToDo;
 import org.example.view.*;
 
 import javax.swing.*;
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Controller {
     private static JFrame mainFrame;
@@ -20,7 +18,7 @@ public class Controller {
     public static void startApp() {
         mainFrame = new JFrame("ToDo App");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(600, 400);
+        mainFrame.setSize(800, 600);
         mainFrame.setLocationRelativeTo(null);
         showLogin();
         mainFrame.setVisible(true);
@@ -33,11 +31,6 @@ public class Controller {
 
     public static boolean login(String username, String password) {
         return username.equals("admin") && password.equals("1234");
-    }
-
-    public static void showHome() {
-        mainFrame.setContentPane(new HomeWindow().getPanel());
-        refresh();
     }
 
     public static void showBachecaWindow() {
@@ -62,10 +55,7 @@ public class Controller {
     }
 
     public static void showDeleteBachecaConfirmation(TitoloBacheca titolo) {
-        int sc = JOptionPane.showConfirmDialog(mainFrame,
-                "Eliminare la bacheca “" + titolo + "”? Tutti i ToDo andranno persi.",
-                "Conferma eliminazione",
-                JOptionPane.YES_NO_OPTION);
+        int sc = JOptionPane.showConfirmDialog(mainFrame, "Eliminare la bacheca “" + titolo + "”? Tutti i ToDo andranno persi.", "Conferma eliminazione", JOptionPane.YES_NO_OPTION);
         if (sc == JOptionPane.YES_OPTION) {
             boolean ok = ModelManager.eliminaBacheca(titolo);
             if (!ok) {
@@ -101,43 +91,44 @@ public class Controller {
             String titolo = view.getTitoloField().getText().trim();
             String descrizione = view.getDescrizioneArea().getText().trim();
             String dataStr = view.getScadenzaField().getText().trim();
-            String colore = (view.getColoreSfondoField() != null) ? view.getColoreSfondoField().getText().trim() : "";
 
-            if (!titolo.isEmpty() && !descrizione.isEmpty() && !dataStr.isEmpty()) {
-                Date scadenza;
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                    sdf.setLenient(false);
-                    scadenza = sdf.parse(dataStr);
-                } catch (ParseException ex) {
-                    view.showError("Formato data non valido (dd/MM/yyyy).");
-                    return;
-                }
-
-                String url = view.getUrlField().getText().trim();
-                List<String> utenti = view.getUtentiList().getSelectedValuesList();
-
-                if (todoOriginal == null) {
-                    ToDo newTodo = new ToDo(titolo, descrizione, scadenza);
-                    if (!url.isEmpty()) newTodo.setURL(url);
-                    if (!colore.isEmpty()) newTodo.setColoreSfondo(colore);
-                    if (!utenti.isEmpty()) newTodo.setListaUtenti(utenti);
-                    ModelManager.aggiungiToDo(tipo, newTodo);
-                    view.showInfo("ToDo creato con successo!");
-                } else {
-                    todoOriginal.setTitolo(titolo);
-                    todoOriginal.setDescrizione(descrizione);
-                    todoOriginal.setScadenza(scadenza);
-                    todoOriginal.setURL(url);
-                    todoOriginal.setColoreSfondo(colore);
-                    todoOriginal.setListaUtenti(utenti);
-                    view.showInfo("ToDo aggiornato con successo!");
-                }
-
-                showBachecaWindow();
-            } else {
+            if (titolo.isEmpty() || descrizione.isEmpty() || dataStr.isEmpty()) {
                 view.showError("Compila tutti i campi obbligatori.");
+                return;
             }
+
+            Date scadenza;
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                sdf.setLenient(false);
+                scadenza = sdf.parse(dataStr);
+            } catch (ParseException ex) {
+                view.showError("Formato data non valido (dd/MM/yyyy).");
+                return;
+            }
+
+            String url = view.getUrlField().getText().trim();
+            List<String> utenti = view.getUtentiList().getSelectedValuesList();
+            String immaginePath = view.getImmaginePathField().getText().trim(); // ✅
+
+            if (todoOriginal == null) {
+                ToDo newTodo = new ToDo(titolo, descrizione, scadenza);
+                if (!url.isEmpty()) newTodo.setURL(url);
+                if (!utenti.isEmpty()) newTodo.setListaUtenti(utenti);
+                if (!immaginePath.isEmpty()) newTodo.setImmaginePath(immaginePath);
+                ModelManager.aggiungiToDo(tipo, newTodo);
+                view.showInfo("ToDo creato con successo!");
+            } else {
+                todoOriginal.setTitolo(titolo);
+                todoOriginal.setDescrizione(descrizione);
+                todoOriginal.setScadenza(scadenza);
+                todoOriginal.setURL(url);
+                todoOriginal.setListaUtenti(utenti);
+                todoOriginal.setImmaginePath(immaginePath);
+                view.showInfo("ToDo aggiornato con successo!");
+            }
+
+            showBachecaWindow();
         });
 
         view.getAnnullaButton().addActionListener(e -> showBachecaWindow());
@@ -162,8 +153,6 @@ public class Controller {
     public static void spostaToDoInAltraBacheca(TitoloBacheca origine, TitoloBacheca destinazione, ToDo todo) {
         ModelManager.rimuoviToDo(origine, todo);
         ModelManager.aggiungiToDo(destinazione, todo);
-        riallineaPosizioni(ModelManager.getToDoPerBacheca(origine));
-        riallineaPosizioni(ModelManager.getToDoPerBacheca(destinazione));
     }
 
     private static void riallineaPosizioni(List<ToDo> lista) {

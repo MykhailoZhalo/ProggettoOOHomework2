@@ -55,10 +55,9 @@ public class LoginWindow {
         loginButton.addActionListener(e -> {
             String user = textUsername.getText();
             String pass = new String(textPassword.getPassword());
-
             if (Controller.login(user, pass)) {
                 JOptionPane.showMessageDialog(null, "Login riuscito!");
-                Controller.showHome();
+                Controller.showBachecaWindow();  // Vai direttamente alla Bacheca
             } else {
                 JOptionPane.showMessageDialog(null, "Credenziali errate.");
             }
