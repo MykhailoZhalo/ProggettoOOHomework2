@@ -50,4 +50,22 @@ public class ModelManager {
             b.getToDoList().remove(todo);
         }
     }
+    public static void spostaToDo(TitoloBacheca bacheca, ToDo todo, int nuovaPosizione) {
+        Bacheca b = bacheche.get(bacheca);
+        if (b != null && b.getToDoList().contains(todo)) {
+            List<ToDo> lista = b.getToDoList();
+            lista.remove(todo);
+            if (nuovaPosizione < 0) nuovaPosizione = 0;
+            if (nuovaPosizione > lista.size()) nuovaPosizione = lista.size();
+            lista.add(nuovaPosizione, todo);
+            aggiornaPosizioni(lista);
+        }
+    }
+
+    private static void aggiornaPosizioni(List<ToDo> lista) {
+        for (int i = 0; i < lista.size(); i++) {
+            lista.get(i).setPosizione(i);
+        }
+    }
+
 }

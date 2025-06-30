@@ -5,124 +5,60 @@ import org.example.model.ToDo;
 import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 public class ToDoFormWindow {
     private JPanel panelToDo;
     private JTextField titoloField;
     private JTextArea descrizioneArea;
-    private JFormattedTextField scadenzaField;
-    private JTextField posizioneField;
-    private JTextField urlField;
-    private JList<String> utentiList;
+    private JTextField scadenzaField;
     private JButton salvaButton;
     private JButton annullaButton;
-
-    private ToDo todoToEdit;
+    private JList<String> utentiList;
+    private JTextField urlField;
+    private JTextField coloreSfondoField;
 
     public ToDoFormWindow() {
         setupUI();
     }
 
     public ToDoFormWindow(ToDo todo) {
-        this();
-        this.todoToEdit = todo;
-        salvaButton.setText("Aggiorna");
-        titoloField.setText(todo.getTitolo());
-        descrizioneArea.setText(todo.getDescrizione());
-        scadenzaField.setText(new SimpleDateFormat("dd/MM/yyyy").format(todo.getScadenza()));
-        posizioneField.setText(String.valueOf(todo.getPosizione()));
-        urlField.setText(todo.getURL() != null ? todo.getURL() : "");
-        List<String> utenti = todo.getListaUtenti();
-        utentiList.setListData(utenti != null ? utenti.toArray(new String[0]) : new String[0]);
+        setupUI();
+        if (todo != null) {
+            titoloField.setText(todo.getTitolo());
+            descrizioneArea.setText(todo.getDescrizione());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            scadenzaField.setText(sdf.format(todo.getScadenza()));
+            urlField.setText(todo.getURL());
+            coloreSfondoField.setText(todo.getColoreSfondo() != null ? todo.getColoreSfondo() : "");
+        }
     }
 
     private void setupUI() {
-        panelToDo = new JPanel(new GridBagLayout());
-        panelToDo.setBackground(new Color(0xEAEAEA)); // colore chiaro di sfondo
+        // Creazione manuale del campo colore
+        coloreSfondoField = new JTextField("#FFFFFF");
+        JLabel coloreLabel = new JLabel("Colore Sfondo (es: #FFCCCC)");
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Aggiunta al layout gestito da GridLayoutManager (riga 3, colonna 0 e 1)
+        panelToDo.add(coloreLabel, new com.intellij.uiDesigner.core.GridConstraints(
+                3, 0, 1, 1,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_NONE,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED,
+                null, null, null, 0, false));
 
-        int y = 0;
-
-        addLabel("Titolo*:", y);
-        titoloField = new JTextField(20);
-        addComponent(titoloField, y++);
-
-        addLabel("Data scadenza*:", y);
-        scadenzaField = new JFormattedTextField();
-        scadenzaField.setColumns(20);
-        addComponent(scadenzaField, y++);
-
-        addLabel("Posizione*:", y);
-        posizioneField = new JTextField(20);
-        addComponent(posizioneField, y++);
-
-        addLabel("URL:", y);
-        urlField = new JTextField(20);
-        addComponent(urlField, y++);
-
-        addLabel("Lista utenti:", y);
-        utentiList = new JList<>();
-        JScrollPane utentiScroll = new JScrollPane(utentiList);
-        utentiScroll.setPreferredSize(new Dimension(200, 60));
-        gbc.gridx = 1;
-        gbc.gridy = y++;
-        gbc.weightx = 1.0;
-        gbc.weighty = 0.2;
-        gbc.fill = GridBagConstraints.BOTH;
-        panelToDo.add(utentiScroll, gbc);
-
-        addLabel("Descrizione*:", y);
-        descrizioneArea = new JTextArea(4, 20);
-        JScrollPane descrizioneScroll = new JScrollPane(descrizioneArea);
-        gbc.gridx = 1;
-        gbc.gridy = y++;
-        gbc.weighty = 0.3;
-        panelToDo.add(descrizioneScroll, gbc);
-
-        salvaButton = new JButton("Salva");
-        annullaButton = new JButton("Annulla");
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.add(annullaButton);
-        buttonPanel.add(salvaButton);
-        gbc.gridx = 0;
-        gbc.gridy = y;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        panelToDo.add(buttonPanel, gbc);
+        panelToDo.add(coloreSfondoField, new com.intellij.uiDesigner.core.GridConstraints(
+                3, 1, 1, 1,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED,
+                null, new Dimension(150, -1), null, 0, false));
     }
 
-    private void addLabel(String text, int y) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = y;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 10, 5, 10);
-        panelToDo.add(new JLabel(text), gbc);
-    }
-
-    private void addComponent(JComponent component, int y) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 1;
-        gbc.gridy = y;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.insets = new Insets(5, 10, 5, 10);
-        panelToDo.add(component, gbc);
-    }
 
     public JPanel getPanel() {
         return panelToDo;
-    }
-
-    public ToDo getTodoToEdit() {
-        return todoToEdit;
     }
 
     public JTextField getTitoloField() {
@@ -133,20 +69,8 @@ public class ToDoFormWindow {
         return descrizioneArea;
     }
 
-    public JFormattedTextField getScadenzaField() {
+    public JTextField getScadenzaField() {
         return scadenzaField;
-    }
-
-    public JTextField getPosizioneField() {
-        return posizioneField;
-    }
-
-    public JTextField getUrlField() {
-        return urlField;
-    }
-
-    public JList<String> getUtentiList() {
-        return utentiList;
     }
 
     public JButton getSalvaButton() {
@@ -157,11 +81,84 @@ public class ToDoFormWindow {
         return annullaButton;
     }
 
+    public JTextField getUrlField() {
+        return urlField;
+    }
+
+    public JList<String> getUtentiList() {
+        return utentiList;
+    }
+
+    public JTextField getColoreSfondoField() {
+        return coloreSfondoField;
+    }
+
     public void showError(String message) {
         JOptionPane.showMessageDialog(panelToDo, message, "Errore", JOptionPane.ERROR_MESSAGE);
     }
 
     public void showInfo(String message) {
-        JOptionPane.showMessageDialog(panelToDo, message, "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(panelToDo, message, "Informazione", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        panelToDo = new JPanel();
+        panelToDo.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panelToDo.setBackground(new Color(-1641729));
+        descrizioneArea = new JTextArea();
+        panelToDo.add(descrizioneArea, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 34), null, 0, false));
+        urlField = new JTextField();
+        panelToDo.add(urlField, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        final JLabel label1 = new JLabel();
+        label1.setText("Titolo*:");
+        panelToDo.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label2 = new JLabel();
+        label2.setText("Data scadenza*:");
+        panelToDo.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label3 = new JLabel();
+        label3.setText("URL:");
+        panelToDo.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        salvaButton = new JButton();
+        salvaButton.setText("Salva");
+        panelToDo.add(salvaButton, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("Descrizione*:");
+        panelToDo.add(label4, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTHWEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(82, 34), null, 0, false));
+        titoloField = new JTextField();
+        panelToDo.add(titoloField, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        annullaButton = new JButton();
+        annullaButton.setText("Annulla");
+        panelToDo.add(annullaButton, new com.intellij.uiDesigner.core.GridConstraints(5, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        scadenzaField = new JFormattedTextField();
+        panelToDo.add(scadenzaField, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        final JLabel label5 = new JLabel();
+        label5.setText("Lista utenti:");
+        panelToDo.add(label5, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(72, 37), null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        panelToDo.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(0, 37), null, 0, false));
+        utentiList = new JList();
+        scrollPane1.setViewportView(utentiList);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return panelToDo;
+    }
+
 }

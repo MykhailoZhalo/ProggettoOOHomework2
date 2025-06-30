@@ -9,6 +9,7 @@ import org.example.view.*;
 import javax.swing.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,10 @@ public class Controller {
     }
 
     public static void showDeleteBachecaConfirmation(TitoloBacheca titolo) {
-        int sc = JOptionPane.showConfirmDialog(mainFrame, "Eliminare la bacheca “" + titolo + "”? Tutti i ToDo andranno persi.", "Conferma eliminazione", JOptionPane.YES_NO_OPTION);
+        int sc = JOptionPane.showConfirmDialog(mainFrame,
+                "Eliminare la bacheca “" + titolo + "”? Tutti i ToDo andranno persi.",
+                "Conferma eliminazione",
+                JOptionPane.YES_NO_OPTION);
         if (sc == JOptionPane.YES_OPTION) {
             boolean ok = ModelManager.eliminaBacheca(titolo);
             if (!ok) {
@@ -97,9 +101,9 @@ public class Controller {
             String titolo = view.getTitoloField().getText().trim();
             String descrizione = view.getDescrizioneArea().getText().trim();
             String dataStr = view.getScadenzaField().getText().trim();
-            String posStr = view.getPosizioneField().getText().trim();
+            String colore = (view.getColoreSfondoField() != null) ? view.getColoreSfondoField().getText().trim() : "";
 
-            if (!titolo.isEmpty() && !descrizione.isEmpty() && !dataStr.isEmpty() && !posStr.isEmpty()) {
+            if (!titolo.isEmpty() && !descrizione.isEmpty() && !dataStr.isEmpty()) {
                 Date scadenza;
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -110,22 +114,13 @@ public class Controller {
                     return;
                 }
 
-                int posizione;
-                try {
-                    posizione = Integer.parseInt(posStr);
-                    if (posizione < 0) throw new NumberFormatException();
-                } catch (NumberFormatException ex) {
-                    view.showError("Posizione deve essere un numero intero positivo.");
-                    return;
-                }
-
                 String url = view.getUrlField().getText().trim();
                 List<String> utenti = view.getUtentiList().getSelectedValuesList();
 
                 if (todoOriginal == null) {
                     ToDo newTodo = new ToDo(titolo, descrizione, scadenza);
-                    newTodo.setPosizione(posizione);
                     if (!url.isEmpty()) newTodo.setURL(url);
+                    if (!colore.isEmpty()) newTodo.setColoreSfondo(colore);
                     if (!utenti.isEmpty()) newTodo.setListaUtenti(utenti);
                     ModelManager.aggiungiToDo(tipo, newTodo);
                     view.showInfo("ToDo creato con successo!");
@@ -133,8 +128,8 @@ public class Controller {
                     todoOriginal.setTitolo(titolo);
                     todoOriginal.setDescrizione(descrizione);
                     todoOriginal.setScadenza(scadenza);
-                    todoOriginal.setPosizione(posizione);
                     todoOriginal.setURL(url);
+                    todoOriginal.setColoreSfondo(colore);
                     todoOriginal.setListaUtenti(utenti);
                     view.showInfo("ToDo aggiornato con successo!");
                 }
@@ -151,6 +146,30 @@ public class Controller {
 
     public static void eliminaToDo(TitoloBacheca tipo, ToDo todo) {
         ModelManager.rimuoviToDo(tipo, todo);
+    }
+
+    public static void spostaToDo(TitoloBacheca titolo, ToDo todo, int delta) {
+        List<ToDo> lista = ModelManager.getToDoPerBacheca(titolo);
+        int currentIndex = lista.indexOf(todo);
+        int newIndex = currentIndex + delta;
+
+        if (newIndex >= 0 && newIndex < lista.size()) {
+            Collections.swap(lista, currentIndex, newIndex);
+            riallineaPosizioni(lista);
+        }
+    }
+
+    public static void spostaToDoInAltraBacheca(TitoloBacheca origine, TitoloBacheca destinazione, ToDo todo) {
+        ModelManager.rimuoviToDo(origine, todo);
+        ModelManager.aggiungiToDo(destinazione, todo);
+        riallineaPosizioni(ModelManager.getToDoPerBacheca(origine));
+        riallineaPosizioni(ModelManager.getToDoPerBacheca(destinazione));
+    }
+
+    private static void riallineaPosizioni(List<ToDo> lista) {
+        for (int i = 0; i < lista.size(); i++) {
+            lista.get(i).setPosizione(i);
+        }
     }
 
     private static void refresh() {
